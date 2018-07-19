@@ -1,0 +1,108 @@
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Messaging Wall</title>
+    <!-- Botstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+    <style>
+    h5 {
+        margin-top: 2%;
+        margin-bottom: 1%
+    }
+    .form-group input {
+        margin-top: 2%;
+        float: right
+    }
+    .comment_display {
+        margin-left: 100px
+    }
+    .row {
+        margin-bottom: 2%
+    }
+    .red {
+        color: red
+    }
+    .comment_box {
+        margin-top: 2%
+    }
+    .xsmall {
+        font-size: x-small
+    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand" href="#">Coding Dojo Wall</a>
+            <div>
+                <a href="/logout" class="btn btn-sm btn-outline-secondary" type="button">Logout</a>
+            </div>
+        </nav>
+        <!-- First row -->
+        <div class="row">
+            <div class="col-sm-12">
+                <h5>Post a message</h5>
+                {% if messages %}
+                    {% for message in messages %}
+                        {% if 'message_errors' in message.extra_tags %}
+                        <p class="red">{{ message }}</p>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+                <form action='/postmessage' method='post'>
+                {% csrf_token %}
+                    <div class="form-group">
+                        <textarea class="form-control" name="message" rows="3"></textarea>
+                        <input type="submit" value="Post Message" class="btn btn-primary">
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- Second row -->
+        {% for msg in posted_messages reversed %}
+        <div class="row">
+            <div class="col-sm-12">
+                <h5>{{msg.author.first_name}} - {{msg.created_at}}
+                    {% if request.session.user_id == msg.author.id %}
+                        <small class="xsmall">(<a href="/deletemessage/{{msg.id}}" type="submit">Delete</a>)</small>
+                    {% endif %}
+                </h5>
+                <p class="lead">{{msg.message}}</p>
+                <!-- Comments related to this message -->
+                {% for cmt in posted_comments %}
+                    {% if cmt.message_related_id == msg.id%}
+                        <div class="comment_display">
+                            <medium>"{{cmt.comment}}"</medium>
+                            <small class="text-muted">by {{cmt.commentator.first_name}}</small>
+                                {% if request.session.user_id == cmt.commentator.id %}
+                                <small class="xsmall">(<a href="/deletecomment/{{cmt.id}}" type="submit">Delete</a>)</small>
+                                {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+                <!-- Form to post a new comment to this message -->
+                <div class="comment_display comment_box">
+                    <form action='/postcomment' method='post'>
+                    {% csrf_token %}
+                        <div class="form-group">
+                            {% if messages %}
+                                {% for message in messages %}
+                                    {% if 'comment_errors' in message.extra_tags %}
+                                    <p class="red">{{ message }}</p>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            <input type="hidden" name="commented_message" value="{{msg.id}}">
+                            <textarea class="form-control" name="comment" rows="3"></textarea>
+                            <input type="submit" value"Post comment" class="btn btn-success">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        <!-- More rows here -->
+    </div>
+</body>
+</html>
