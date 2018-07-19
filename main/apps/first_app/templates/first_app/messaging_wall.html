@@ -42,6 +42,13 @@
         <!-- First row -->
         <div class="row">
             <div class="col-sm-12">
+                {% if messages %}
+                {% for message in messages %}
+                    {% if 'messagedelete_errors' in message.extra_tags %}
+                        <p class="red">{{ message }}</p>
+                    {% endif %}
+                    {% endfor %}
+                {% endif %}
                 <h5>Post a message</h5>
                 {% if messages %}
                     {% for message in messages %}

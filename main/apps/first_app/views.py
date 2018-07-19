@@ -2,6 +2,8 @@ from django.shortcuts import render, HttpResponse, redirect
 import bcrypt
 from .models import *
 from django.contrib import messages
+from datetime import timedelta, datetime
+from django.utils import timezone
 
 def index(request):
     if 'logged_in' in request.session and 'user_id' in request.session:
@@ -89,9 +91,16 @@ def postcomment(request):
         return redirect('/')
 
 def deletemessage(request,number):
+    now = timezone.now()
     delete_message = Message.objects.get(id=number)
-    delete_message.delete()
-    return redirect('/')
+    delta = now - delete_message.created_at
+    delta = delta.total_seconds()
+    if delta < 1800:
+        delete_message.delete()
+        return redirect('/')
+    else:
+        messages.error(request,"This message can no longer be deleted",extra_tags='messagedelete_errors')
+        return redirect('/')
 
 def deletecomment(request,number):
     delete_comment = Comment.objects.get(id=number)
